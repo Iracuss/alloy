@@ -23,6 +23,7 @@ private:
     GLFWwindow* window;
 
     Renderer render;
+    // Camera camera;
 
     float currentFrame = 0.0f;
 

@@ -1,32 +1,28 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-#include <math.h>
-#include <vector>
+#include "../core/Camera.hpp"
 
 class Renderer
 {
 public:
     Renderer();
     ~Renderer();
+    struct Vertex
+    {
+        glm::vec3 position;
+        glm::vec3 color;
+    };
 
     bool init();
     void render();
+    bool loadGLFWandGlad();
+    void loadShaders(std::vector<Vertex>& cubeVertices, unsigned int indices[], int sizeOf);
 
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-    static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
     GLFWwindow* window;
-
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f,  0.0f);
+    Camera renderCamera;
 
     unsigned int VAO, VBO, EBO; // Might want to just make a getter for these
 private:
@@ -54,18 +50,6 @@ private:
         }
     };
 
-    struct Vertex
-    {
-        glm::vec3 position;
-        glm::vec3 color;
-    };
-
-    float yaw = -90.0f;
-    float pitch = 0.0f;
-    float lastX = 400; // window center
-    float lastY = 300;
-    bool firstMouse = true;
-
     float fov = 45.0f;
 
     int width, height;
@@ -77,7 +61,6 @@ private:
     unsigned int fragmentShader;
 
     unsigned int shaderProgram;
-
 };
 
 #endif

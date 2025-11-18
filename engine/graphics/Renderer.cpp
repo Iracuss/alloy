@@ -10,46 +10,6 @@ Renderer::~Renderer()
     
 }
 
-void Renderer::mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-
-    Renderer* renderer = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
-    if(!renderer) return;
-
-    if(renderer->firstMouse)
-    {
-        renderer->lastX = xpos;
-        renderer->lastY = ypos;
-        renderer->firstMouse = false;
-    }
-
-    float sensitivity = 0.1f;
-    float xoffset = (xpos - renderer->lastX) * sensitivity;
-    float yoffset = (renderer->lastY - ypos) * sensitivity; // got to reverse it for y
-
-    renderer->lastX = xpos;
-    renderer->lastY = ypos;
-
-    renderer->yaw += xoffset;
-    renderer->pitch += yoffset;
-
-    // Limit looking up or down
-    if(renderer->pitch > 89.0f)
-    {
-        renderer->pitch = 89.0f;
-    }
-    if(renderer->pitch < -89.0f)
-    {
-        renderer->pitch = -89.0f;
-    }
-
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(renderer->yaw)) * cos(glm::radians(renderer->pitch));
-    direction.y = sin(glm::radians(renderer->pitch));
-    direction.z = sin(glm::radians(renderer->yaw)) * cos(glm::radians(renderer->pitch));
-    renderer->cameraFront = glm::normalize(direction);
-}
-
 void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     Renderer* renderer = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
@@ -61,7 +21,7 @@ void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int heig
     glViewport(0, 0, width, height);
 }
 
-bool Renderer::init()
+bool Renderer::loadGLFWandGlad()
 {
     // init glfw
     if(!glfwInit())
@@ -90,7 +50,7 @@ bool Renderer::init()
     glfwMakeContextCurrent(window);
 
     // keep this here maybe
-    glfwSetWindowUserPointer(window, this);
+    glfwSetWindowUserPointer(window, &renderCamera);
 
     // load GLAD
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -104,51 +64,18 @@ bool Renderer::init()
     glfwGetFramebufferSize(window, &width, &height);
     framebuffer_size_callback(window, width, height);
 
-    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetCursorPosCallback(window, renderCamera.mouse_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hide and capture cursor
 
     glEnable(GL_DEPTH_TEST);
 
+    return true;
+}
 
-    std::vector<Vertex> cubeVertices = {
-        // 8 unique corners with arbitrary colors (you can pick others)
-        {{-0.5f, -0.5f, -0.5f}, {1, 0, 0}}, // 0
-        {{ 0.5f, -0.5f, -0.5f}, {0, 1, 0}}, // 1
-        {{ 0.5f,  0.5f, -0.5f}, {0, 0, 1}}, // 2
-        {{-0.5f,  0.5f, -0.5f}, {1, 1, 0}}, // 3
-        {{-0.5f, -0.5f,  0.5f}, {1, 0, 1}}, // 4
-        {{ 0.5f, -0.5f,  0.5f}, {0, 1, 1}}, // 5
-        {{ 0.5f,  0.5f,  0.5f}, {1, 1, 1}}, // 6
-        {{-0.5f,  0.5f,  0.5f}, {0, 0, 0}}, // 7
-    };
 
-    // These are the 12 triangles
-    unsigned int indices[] = {
-        // FRONT
-        4, 5, 6,
-        4, 6, 7,
-
-        // BACK
-        0, 1, 2,
-        0, 2, 3,
-
-        // LEFT
-        0, 4, 7,
-        0, 7, 3,
-
-        // RIGHT
-        1, 5, 6,
-        1, 6, 2,
-
-        // TOP
-        3, 2, 6,
-        3, 6, 7,
-
-        // BOTTOM
-        0, 1, 5,
-        0, 5, 4
-    };
-
+// This is stuff that I feel I should put into a shaderManager class
+void Renderer::loadShaders(std::vector<Vertex>& cubeVertices, unsigned int indices[], int sizeOf)
+{
     // vbo stores vertexs in the gpu
     // vao stores the vertex data should be interpreted
     glGenVertexArrays(1, &VAO);
@@ -162,11 +89,10 @@ bool Renderer::init()
     glBufferData(GL_ARRAY_BUFFER, cubeVertices.size() * sizeof(Vertex), cubeVertices.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeOf, indices, GL_STATIC_DRAW);
 
     // Tell OpenGL how to interpret vertex data
     glEnableVertexAttribArray(0);
-
     glVertexAttribPointer(
         0,              // layout location = 0
         3,              // 3 floats per vertex
@@ -245,7 +171,6 @@ bool Renderer::init()
         std::cout << "FRAGMENT SHADER COMPILE ERROR:\n" << infoLog << std::endl;
     }
 
-
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
@@ -254,9 +179,58 @@ bool Renderer::init()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // Tell OpenGL to resize viewport when window does
-    // glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+}
 
+bool Renderer::init()
+{
+    if(!loadGLFWandGlad())
+    {
+        return false;
+    }
+
+    std::vector<Vertex> cubeVertices = {
+        // 8 unique corners with arbitrary colors (you can pick others)
+        {{-0.5f, -0.5f, -0.5f}, {1, 0, 0}}, // 0
+        {{ 0.5f, -0.5f, -0.5f}, {0, 1, 0}}, // 1
+        {{ 0.5f,  0.5f, -0.5f}, {0, 0, 1}}, // 2
+        {{-0.5f,  0.5f, -0.5f}, {1, 1, 0}}, // 3
+        {{-0.5f, -0.5f,  0.5f}, {1, 0, 1}}, // 4
+        {{ 0.5f, -0.5f,  0.5f}, {0, 1, 1}}, // 5
+        {{ 0.5f,  0.5f,  0.5f}, {1, 1, 1}}, // 6
+        {{-0.5f,  0.5f,  0.5f}, {0, 0, 0}}, // 7
+    };
+
+    // These are the 12 triangles
+    unsigned int indices[] = {
+        // FRONT
+        4, 5, 6,
+        4, 6, 7,
+
+        // BACK
+        0, 1, 2,
+        0, 2, 3,
+
+        // LEFT
+        0, 4, 7,
+        0, 7, 3,
+
+        // RIGHT
+        1, 5, 6,
+        1, 6, 2,
+
+        // TOP
+        3, 2, 6,
+        3, 6, 7,
+
+        // BOTTOM
+        0, 1, 5,
+        0, 5, 4
+    };
+
+    int sizeOf = sizeof(indices);
+
+    // Right now we pass in the cubeVerts and indices of the cube
+    loadShaders(cubeVertices, indices, sizeOf);
  
     return true;
 }
@@ -269,12 +243,6 @@ void Renderer::render()
 
     glUseProgram(shaderProgram);
 
-    glm::mat4 view = glm::lookAt(
-        cameraPos,
-        cameraPos + cameraFront,
-        cameraUp
-    );
-
     glm::mat4 projection = glm::perspective(
         glm::radians(fov),
         (float)width / (float)height,
@@ -282,6 +250,8 @@ void Renderer::render()
         100.0f
     );
 
+    // issue?
+    glm::mat4 view = renderCamera.cameraView();
 
     Transform cube1;
     cube1.position = glm::vec3(0.0f, 0.0f, 0.0f);
