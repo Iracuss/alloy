@@ -1,7 +1,8 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
-#include "../graphics/Renderer.hpp"
+// #include "../graphics/Renderer.hpp"
+#include "Window.hpp"
 
 class Engine
 {
@@ -20,14 +21,14 @@ private:
 
     bool m_isRunning;
 
-    GLFWwindow* window;
+    // GLFWwindow* window;
 
-    Renderer render;
+    // Renderer render;
+    Window window;
     // Camera camera;
 
     float currentFrame = 0.0f;
 
-    void processInput(GLFWwindow* window);
 };
 
 #endif

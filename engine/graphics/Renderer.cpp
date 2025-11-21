@@ -2,7 +2,7 @@
 
 // This entire file needs to be broken up into more functions to make it more clear
 
-Renderer::Renderer() : window(nullptr), width(800), height(600)
+Renderer::Renderer() : width(800), height(600)
 {}
 
 Renderer::~Renderer() 
@@ -20,58 +20,6 @@ void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int heig
     }
     glViewport(0, 0, width, height);
 }
-
-bool Renderer::loadGLFWandGlad()
-{
-    // init glfw
-    if(!glfwInit())
-    {
-        std::cerr << "Failed to init GLFW\n";
-        return false;
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    #ifdef __APPLE__
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    #endif
-
-    // Create the window
-    window = glfwCreateWindow(800, 600, "Alloy renderer", nullptr, nullptr);
-    if(!window)
-    {
-        std::cerr << "Failed to create window\n";
-        glfwTerminate();
-        return false;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    // keep this here maybe
-    glfwSetWindowUserPointer(window, &renderCamera);
-
-    // load GLAD
-    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cerr << "Failed to init GLAD\n";
-        return false;
-    }
-
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    glfwGetFramebufferSize(window, &width, &height);
-    framebuffer_size_callback(window, width, height);
-
-    glfwSetCursorPosCallback(window, renderCamera.mouse_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hide and capture cursor
-
-    glEnable(GL_DEPTH_TEST);
-
-    return true;
-}
-
 
 // This is stuff that I feel I should put into a shaderManager class
 void Renderer::loadShaders(std::vector<Vertex>& cubeVertices, unsigned int indices[], int sizeOf)
@@ -181,12 +129,12 @@ void Renderer::loadShaders(std::vector<Vertex>& cubeVertices, unsigned int indic
 
 }
 
-bool Renderer::init()
+void Renderer::init()
 {
-    if(!loadGLFWandGlad())
-    {
-        return false;
-    }
+    // if(!loadGLFWandGlad())
+    // {
+    //     return false;
+    // }
 
     std::vector<Vertex> cubeVertices = {
         // 8 unique corners with arbitrary colors (you can pick others)
@@ -232,10 +180,9 @@ bool Renderer::init()
     // Right now we pass in the cubeVerts and indices of the cube
     loadShaders(cubeVertices, indices, sizeOf);
  
-    return true;
 }
 
-void Renderer::render()
+void Renderer::render(GLFWwindow* window)
 {
     glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

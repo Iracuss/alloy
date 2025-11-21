@@ -11,7 +11,12 @@ Engine::~Engine()
 
 void Engine::init()
 {
-    m_isRunning = render.init();
+    m_isRunning = window.loadGLFWandGlad();
+    if(!m_isRunning)
+    {
+        return;
+    }
+    window.render.init();
 }
 
 void Engine::update()
@@ -21,10 +26,10 @@ void Engine::update()
 
 void Engine::shutdown()
 {
-    glDeleteVertexArrays(1, &render.VAO);
-    glDeleteBuffers(1, &render.VBO);
+    glDeleteVertexArrays(1, &window.render.VAO);
+    glDeleteBuffers(1, &window.render.VBO);
 
-    glfwDestroyWindow(render.window);
+    glfwDestroyWindow(window.window);
     glfwTerminate();
 
     m_isRunning = false;
@@ -36,18 +41,18 @@ void Engine::run()
     if(m_isRunning)
     {
         //gets in here before exiting
-        while(!glfwWindowShouldClose(render.window))
+        while(!glfwWindowShouldClose(window.window))
         {
             //maybe put this in a different class all can use so I don't pass it
             currentFrame = (float)glfwGetTime();
             deltaTime = currentFrame - lastFrame;
             lastFrame = currentFrame;
 
-            render.renderCamera.processInput(render.window, deltaTime);
+            window.render.renderCamera.processInput(window.window, deltaTime);
 
             //update?
 
-            render.render();
+            window.render.render(window.window);
 
         }
     }

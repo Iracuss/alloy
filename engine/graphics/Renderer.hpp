@@ -14,14 +14,14 @@ public:
         glm::vec3 color;
     };
 
-    bool init();
-    void render();
+    void init();
+    void render(GLFWwindow* window);
     bool loadGLFWandGlad();
     void loadShaders(std::vector<Vertex>& cubeVertices, unsigned int indices[], int sizeOf);
 
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-    GLFWwindow* window;
+    // GLFWwindow* window;
     Camera renderCamera;
 
     unsigned int VAO, VBO, EBO; // Might want to just make a getter for these

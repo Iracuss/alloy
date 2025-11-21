@@ -20,8 +20,9 @@ target_include_directories(glad PUBLIC libs/glad/include)
 # --------------------------------
 file(GLOB CORE_FILES "engine/core/*.cpp")
 file(GLOB GRAPHIC_FILES "engine/graphics/*.cpp")
+file(GLOB ASSET_FILES "engine/assets/*.cpp")
 
-add_executable(alloy_engine ${CORE_FILES} ${GRAPHIC_FILES})
+add_executable(alloy_engine ${CORE_FILES} ${GRAPHIC_FILES} ${ASSET_FILES})
 
 # --------------------------------
 # GLM (header-only)
