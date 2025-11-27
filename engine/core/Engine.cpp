@@ -1,6 +1,8 @@
 #include "Engine.hpp"
 #include <iostream>
 
+
+// Everything is kind of named super bland so need to fix
 Engine::Engine() : m_isRunning(false)
 {}
 
@@ -26,8 +28,8 @@ void Engine::update()
 
 void Engine::shutdown()
 {
-    glDeleteVertexArrays(1, &window.render.VAO);
-    glDeleteBuffers(1, &window.render.VBO);
+    glDeleteVertexArrays(1, &window.render.cubeMesh.VAO);
+    glDeleteBuffers(1, &window.render.cubeMesh.VBO);
 
     glfwDestroyWindow(window.window);
     glfwTerminate();

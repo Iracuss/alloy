@@ -1,0 +1,78 @@
+#include "Shader.hpp"
+
+// This is whole project is such a nightmare right now
+Shader::Shader(const std::string& vertSrc, const std::string& fragSrc)
+{
+    // This is relative to build path I think
+    std::string vPath = "../assets/shaders/" + vertSrc + ".vert";
+    std::string fPath = "../assets/shaders/" + fragSrc + ".frag";
+
+    // std::cout << vPath << std::endl;
+    // std::cout << fPath << std::endl;
+
+    vertShader = loadFile(vPath);
+    fragShader = loadFile(fPath);
+
+    // std::cout << vertShader.size() << std::endl;
+    // std::cout << fragShader.size() << std::endl;
+
+    const char* vShader = vertShader.c_str();
+    const char* fShader = fragShader.c_str();
+
+    // std::cout << vertShader << std::endl;
+    // std::cout << fragShader << std::endl;
+
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vShader, nullptr);
+    glCompileShader(vertexShader);
+
+    //Error checking
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
+        std::cout << "VERTEX SHADER COMPILE ERROR:\n" << infoLog << std::endl;
+    }
+
+
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fShader, nullptr);
+    glCompileShader(fragmentShader);
+
+    success = 0;
+    infoLog[0] = '\0';
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
+        std::cout << "FRAGMENT SHADER COMPILE ERROR:\n" << infoLog << std::endl;
+    }
+
+    program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
+
+    success = 0;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetProgramInfoLog(program, 512, nullptr, infoLog);
+        std::cout << "SHADER LINK ERROR:\n" << infoLog << std::endl;
+    }
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+}
+
+Shader::Shader() : program(0) {}
+
+Shader::~Shader() {}
+
+void Shader::use()
+{
+    if(program != 0)
+        glUseProgram(program);
+}
