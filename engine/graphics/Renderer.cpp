@@ -2,49 +2,6 @@
 
 // This entire file needs to be broken up into more functions to make it more clear
 
-
-
-    std::vector<Vertex> cubeVertices = {
-        // 8 unique corners with arbitrary colors (you can pick others)
-        {{-0.5f, -0.5f, -0.5f}, {1, 0, 0}}, // 0
-        {{ 0.5f, -0.5f, -0.5f}, {0, 1, 0}}, // 1
-        {{ 0.5f,  0.5f, -0.5f}, {0, 0, 1}}, // 2
-        {{-0.5f,  0.5f, -0.5f}, {1, 1, 0}}, // 3
-        {{-0.5f, -0.5f,  0.5f}, {1, 0, 1}}, // 4
-        {{ 0.5f, -0.5f,  0.5f}, {0, 1, 1}}, // 5
-        {{ 0.5f,  0.5f,  0.5f}, {1, 1, 1}}, // 6
-        {{-0.5f,  0.5f,  0.5f}, {0, 0, 0}}, // 7
-    };
-
-    // These are the 12 triangles
-    std::vector<unsigned int> indices = {
-        // FRONT
-        4, 5, 6,
-        4, 6, 7,
-
-        // BACK
-        0, 1, 2,
-        0, 2, 3,
-
-        // LEFT
-        0, 4, 7,
-        0, 7, 3,
-
-        // RIGHT
-        1, 5, 6,
-        1, 6, 2,
-
-        // TOP
-        3, 2, 6,
-        3, 6, 7,
-
-        // BOTTOM
-        0, 1, 5,
-        0, 5, 4
-    };
-
-
-
 Renderer::Renderer() : width(800), height(600)
 {}
 
@@ -53,6 +10,7 @@ Renderer::~Renderer()
     
 }
 
+// Why not put this in the window class
 void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     Renderer* renderer = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
@@ -67,14 +25,30 @@ void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int heig
 // This is stuff that I feel I should put into a shaderManager class
 void Renderer::loadShaders()
 {
-    
+
 }
 
+// This is just a test thing, I will probably remove this
 void Renderer::init()
 {
+
+    // We should be able to load a cube into renderobject just like these
+    // for the transform we will hard code it as well
+    // Remember we need a way to get a mesh and shader that is already made
+    // This is so we are not creating multiple of the same shader and mesh for the same object type
     cubeShader = Shader("cube", "cube");
-    loadShaders();
-    cubeMesh = Mesh(cubeVertices, indices);
+    cubeMesh = Mesh(temp_cubeVertices, temp_cubeIndices);
+    cubeTexture = Texture("dirt.jpg");
+
+    RenderObject cube1(cubeMesh, cubeShader, cubeTexture);
+    RenderObject cube2(cubeMesh, cubeShader, cubeTexture);
+
+    cube2.m_transform.position = glm::vec3(3.0f, 0.0f, 0.0f);
+    cube2.m_transform.rotation = glm::vec3(0.0f);
+    cube2.m_transform.scale = glm::vec3(1.0f);
+
+    m_scene.addObjectToScene(cube1);
+    m_scene.addObjectToScene(cube2);
 }
 
 void Renderer::render(GLFWwindow* window)
@@ -83,8 +57,6 @@ void Renderer::render(GLFWwindow* window)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    cubeShader.use();
-
     glm::mat4 projection = glm::perspective(
         glm::radians(fov),
         (float)width / (float)height,
@@ -92,35 +64,24 @@ void Renderer::render(GLFWwindow* window)
         100.0f
     );
 
-    // issue?
     glm::mat4 view = renderCamera.cameraView();
 
-    Transform cube1;
-    cube1.position = glm::vec3(0.0f, 0.0f, 0.0f);
-    cube1.rotation = glm::vec3(0.0f);
-    cube1.scale = glm::vec3(1.0f);
-
-    Transform cube2;
-    cube2.position = glm::vec3(3.0f, 0.0f, 0.0f);
-    cube2.rotation = glm::vec3(0.0f);
-    cube2.scale = glm::vec3(1.0f);
-
-    Transform cubes[] = {cube1, cube2};
-
-    for (int i = 0; i < 2; i++)
+    for(auto& obj : m_scene.obj)
     {
-        glm::mat4 mvp = projection * view * cubes[i].GetMatrix();
+        obj.m_shader->use();
 
-        int mvpLoc = glGetUniformLocation(cubeShader.program, "u_MVP");
-        // std::cout << "MVP uniform location: " << mvpLoc << std::endl;
+        glm::mat4 mvp = projection * view * obj.m_transform.GetMatrix();
 
-        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+        obj.m_shader->setMat4("u_MVP", mvp);
 
-        cubeMesh.draw();
+        obj.m_texture->bind(0);
+        
+        obj.m_shader->setInt("u_Texture", 0);
+        // // std::cout << "MVP uniform location: " << mvpLoc << std::endl;
 
-        // Want to put this in a draw function in mesh
-        // glBindVertexArray(VAO);
-        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        // glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+        obj.m_mesh->draw();
     }
 
     glfwSwapBuffers(window);

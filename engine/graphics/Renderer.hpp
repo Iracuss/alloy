@@ -8,6 +8,8 @@
 #include "../assets/Mesh.hpp"
 #include "../assets/Shader.hpp"
 #include "../math/Transform.hpp"
+#include "../math/Cube.hpp"
+#include "Scene.hpp"
 
 class Renderer
 {
@@ -17,28 +19,19 @@ public:
 
     void init();
     void render(GLFWwindow* window);
-    bool loadGLFWandGlad();
     void loadShaders();
 
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-    // GLFWwindow* window;
     Camera renderCamera;
     Mesh cubeMesh;
     Shader cubeShader;
-
+    Texture cubeTexture;
+    Scene m_scene;
 private:
-    float fov = 45.0f;
+    float fov = 90.0f;
 
     int width, height;
-    
-    // const char* vertexShaderSrc;
-    // const char* fragmentShaderSrc;
-
-    // unsigned int vertexShader;
-    // unsigned int fragmentShader;
-
-    // unsigned int shaderProgram;
 };
 
 #endif

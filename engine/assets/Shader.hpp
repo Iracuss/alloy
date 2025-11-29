@@ -5,6 +5,9 @@
 #include <string>
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 class Shader
 {
@@ -14,16 +17,13 @@ public:
     ~Shader();
 
     void use();
-    // void setMat4(const std::string& name, const glm::mat4& mat);
+    void setMat4(const std::string& name, const glm::mat4& mat); // work on this
+    void setInt(const std::string& name, int val);
 
-
-    unsigned int program; // Need this to do some linking later
+    unsigned int program;
 private:
     std::string vertShader;
     std::string fragShader;
-
-    unsigned int vertexShader;
-    unsigned int fragmentShader;
 };
 
 

@@ -29,6 +29,7 @@ add_executable(alloy_engine ${CORE_FILES} ${GRAPHIC_FILES} ${ASSET_FILES} ${MATH
 # GLM (header-only)
 # --------------------------------
 target_include_directories(alloy_engine PUBLIC libs/glm)
+target_include_directories(alloy_engine PUBLIC libs/stb)
 
 # --------------------------------
 # Link libs

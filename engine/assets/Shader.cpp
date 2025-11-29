@@ -22,7 +22,7 @@ Shader::Shader(const std::string& vertSrc, const std::string& fragSrc)
     // std::cout << vertShader << std::endl;
     // std::cout << fragShader << std::endl;
 
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vShader, nullptr);
     glCompileShader(vertexShader);
 
@@ -37,7 +37,7 @@ Shader::Shader(const std::string& vertSrc, const std::string& fragSrc)
     }
 
 
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fShader, nullptr);
     glCompileShader(fragmentShader);
 
@@ -75,4 +75,20 @@ void Shader::use()
 {
     if(program != 0)
         glUseProgram(program);
+}
+
+void Shader::setMat4(const std::string& name, const glm::mat4& mat)
+{
+    // glm::mat4 mvp = projection * view * cubes[i].GetMatrix();
+    const char* cName = name.c_str();
+
+    int mvpLoc = glGetUniformLocation(program, cName);
+    // std::cout << "MVP uniform location: " << mvpLoc << std::endl;
+
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mat));
+}
+
+void Shader::setInt(const std::string& name, int val)
+{
+    glUniform1i(glGetUniformLocation(program, name.c_str()), val);
 }

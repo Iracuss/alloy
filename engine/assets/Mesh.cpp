@@ -40,6 +40,16 @@ Mesh::Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i) : v
         sizeof(Vertex),
         (void*)offsetof(Vertex, color)
     );
+    
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(
+        2, 
+        2, 
+        GL_FLOAT, 
+        GL_FALSE, 
+        sizeof(Vertex), 
+        (void*)offsetof(Vertex, uv)
+    );
 
     std::cout << "VAO: " << VAO << " VBO: " << VBO << " EBO: " << EBO << std::endl;
 
