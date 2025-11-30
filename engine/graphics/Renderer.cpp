@@ -36,19 +36,25 @@ void Renderer::init()
     // for the transform we will hard code it as well
     // Remember we need a way to get a mesh and shader that is already made
     // This is so we are not creating multiple of the same shader and mesh for the same object type
-    cubeShader = Shader("cube", "cube");
-    cubeMesh = Mesh(temp_cubeVertices, temp_cubeIndices);
-    cubeTexture = Texture("dirt.jpg");
+    // cubeShader = Shader("cube", "cube");
+    // cubeMesh = Mesh(temp_cubeVertices, temp_cubeIndices);
+    // cubeTexture = Texture("dirt.jpg");
 
-    RenderObject cube1(cubeMesh, cubeShader, cubeTexture);
-    RenderObject cube2(cubeMesh, cubeShader, cubeTexture);
+    backpack = Model("/Users/christiancuevas-iraheta/Desktop/school-repos/alloy/assets/models/backpack/backpack.obj");
+    std::cout << "Model creation successful." << std::endl;
+    m_shader = Shader("model", "model");
+    std::cout << "Shader creation successful." << std::endl;
+    RenderObject bp(backpack);
+    bp.m_transform.scale = glm::vec3(0.5f);
+    // RenderObject cube2(cubeMesh, cubeShader, cubeTexture);
 
-    cube2.m_transform.position = glm::vec3(3.0f, 0.0f, 0.0f);
-    cube2.m_transform.rotation = glm::vec3(0.0f);
-    cube2.m_transform.scale = glm::vec3(1.0f);
+    // cube2.m_transform.position = glm::vec3(3.0f, 0.0f, 0.0f);
+    // cube2.m_transform.rotation = glm::vec3(0.0f);
+    // cube2.m_transform.scale = glm::vec3(1.0f);
 
-    m_scene.addObjectToScene(cube1);
-    m_scene.addObjectToScene(cube2);
+    m_scene.addObjectToScene(bp);
+    std::cout << "RenderObject added to scene. Starting render loop soon." << std::endl;
+    // m_scene.addObjectToScene(cube2);
 }
 
 void Renderer::render(GLFWwindow* window)
@@ -66,22 +72,32 @@ void Renderer::render(GLFWwindow* window)
 
     glm::mat4 view = renderCamera.cameraView();
 
+    m_shader.use();
+
+    m_shader.setMat4("projection", projection);
+    m_shader.setMat4("view", view);
+
     for(auto& obj : m_scene.obj)
     {
-        obj.m_shader->use();
 
-        glm::mat4 mvp = projection * view * obj.m_transform.GetMatrix();
-
-        obj.m_shader->setMat4("u_MVP", mvp);
-
-        obj.m_texture->bind(0);
+        glm::mat4 model = obj.m_transform.GetMatrix();
         
-        obj.m_shader->setInt("u_Texture", 0);
+        m_shader.setMat4("model", model);
+
+        // obj.m_texture->bind(0);
+
+        if(obj.m_model)
+        {
+            obj.m_model->draw(m_shader);
+        } 
+        // else if(obj.m_mesh)
+        
+        // obj.m_shader->setInt("u_Texture", 0);
         // // std::cout << "MVP uniform location: " << mvpLoc << std::endl;
 
         // glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
-        obj.m_mesh->draw();
+        // obj.m_model->draw(shader);
     }
 
     glfwSwapBuffers(window);

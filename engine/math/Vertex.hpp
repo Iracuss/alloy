@@ -6,8 +6,15 @@
 struct Vertex
 {
     glm::vec3 position;
-    glm::vec3 color;
-    glm::vec2 uv;
+    glm::vec3 normal;
+    glm::vec2 texCoords;
+};
+
+struct g_texture
+{
+    unsigned int id;
+    std::string type;
+    std::string path;
 };
 
 #endif

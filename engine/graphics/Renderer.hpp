@@ -8,7 +8,7 @@
 #include "../assets/Mesh.hpp"
 #include "../assets/Shader.hpp"
 #include "../math/Transform.hpp"
-#include "../math/Cube.hpp"
+// #include "../math/Cube.hpp"
 #include "Scene.hpp"
 
 class Renderer
@@ -25,8 +25,9 @@ public:
 
     Camera renderCamera;
     Mesh cubeMesh;
-    Shader cubeShader;
-    Texture cubeTexture;
+    Shader m_shader;
+    // Texture cubeTexture;
+    Model backpack;
     Scene m_scene;
 private:
     float fov = 90.0f;

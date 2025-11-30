@@ -1,55 +1,10 @@
 #include "Mesh.hpp"
 
-Mesh::Mesh() {}
+Mesh::Mesh() : VAO(0), VBO(0), EBO(0), vertices(), indicies(), textures() {}
 
-Mesh::Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i) : vertices(v), indicies(i)
+Mesh::Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i, const std::vector<g_texture>& t) : vertices(v), indicies(i), textures(t)
 {
-    indexCount = i.size();
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(Vertex), v.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, i.size() * sizeof(unsigned int), i.data(), GL_STATIC_DRAW);
-
-    // Tell OpenGL how to interpret vertex data
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,              // layout location = 0
-        3,              // 3 floats per vertex
-        GL_FLOAT,       // type
-        GL_FALSE,       // no normalization
-        sizeof(Vertex),  // stride
-        (void*)offsetof(Vertex, position)        // offset
-    );
-
-    // color attribute (location = 1)
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        (void*)offsetof(Vertex, color)
-    );
-    
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(
-        2, 
-        2, 
-        GL_FLOAT, 
-        GL_FALSE, 
-        sizeof(Vertex), 
-        (void*)offsetof(Vertex, uv)
-    );
+    setupMesh();
 
     std::cout << "VAO: " << VAO << " VBO: " << VBO << " EBO: " << EBO << std::endl;
 
@@ -61,6 +16,57 @@ Mesh::Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i) : v
 Mesh::~Mesh()
 {
     // shutdown(); // This is causing an issue with rendering
+    // if (VAO != 0) {
+    //     shutdown(); 
+    // }
+}
+
+void Mesh::setupMesh()
+{
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicies.size() * sizeof(unsigned int), indicies.data(), GL_STATIC_DRAW);
+
+    // Tell OpenGL how to interpret vertex data
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,              // layout location = 0
+        3,              // 3 floats per vertex
+        GL_FLOAT,       // type
+        GL_FALSE,       // no normalization
+        sizeof(Vertex),  // stride
+        (void*)0        // offset
+    );
+
+    // color attribute (location = 1)
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        (void*)offsetof(Vertex, normal)
+    );
+    
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(
+        2, 
+        2, 
+        GL_FLOAT, 
+        GL_FALSE, 
+        sizeof(Vertex), 
+        (void*)offsetof(Vertex, texCoords)
+    );
 }
 
 void Mesh::shutdown()
@@ -70,12 +76,34 @@ void Mesh::shutdown()
     glDeleteBuffers(1, &EBO);
 }
 
-void Mesh::draw()
+void Mesh::draw(Shader& shader)
 {
+    unsigned int diffusedNr = 1;
+    unsigned int specularNr = 1;
+    for(unsigned int i = 0; i < textures.size(); i++)
+    {
+        if (textures[i].id != 0) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            std::string number;
+            std::string name = textures[i].type;
+
+            if(name == "texture_diffuse")
+            {
+                number = std::to_string(diffusedNr++);
+            } else if(name == "texture_specular") {
+                number = std::to_string(specularNr++);
+            }
+            
+            shader.setInt(("material." + name + number).c_str(), i);
+            glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        }
+    }
+    glActiveTexture(GL_TEXTURE0);
+
+    if(VAO == 0) return;
+
     glBindVertexArray(VAO);
     // std::cout << "Drawing with VAO: " << VAO << " indexCount: " << indexCount << std::endl;
-
-    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-
-    // glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glDrawElements(GL_TRIANGLES, indicies.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }

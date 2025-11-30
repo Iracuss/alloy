@@ -1,13 +1,12 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
+#include <GLFW/glfw3.h>
 #include "../utils/LoadFiles.hpp"
 #include <string>
 #include <iostream>
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 
 class Shader
 {
