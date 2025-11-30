@@ -10,6 +10,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(libs/glfw)
 
 # --------------------------------
+# Assimp
+# --------------------------------
+add_subdirectory(libs/assimp)
+
+# --------------------------------
 # GLAD
 # --------------------------------
 add_library(glad libs/glad/src/glad.c)
@@ -26,15 +31,25 @@ file(GLOB MATH_FILES "engine/math/*.cpp")
 add_executable(alloy_engine ${CORE_FILES} ${GRAPHIC_FILES} ${ASSET_FILES} ${MATH_FILES})
 
 # --------------------------------
+# Assimp Includes
+# --------------------------------
+target_include_directories(alloy_engine PRIVATE libs/assimp/include)
+
+# --------------------------------
 # GLM (header-only)
 # --------------------------------
 target_include_directories(alloy_engine PUBLIC libs/glm)
+
+# --------------------------------
+# STB (header-only)
+# --------------------------------
 target_include_directories(alloy_engine PUBLIC libs/stb)
 
 # --------------------------------
 # Link libs
 # --------------------------------
-target_link_libraries(alloy_engine
+target_link_libraries(alloy_engine PRIVATE
+    assimp
     glfw
     glad
 )
@@ -44,8 +59,8 @@ if(APPLE)
     find_library(COCOA Cocoa)
     find_library(OpenGL OpenGL)
     find_library(IOKIT IOKit)
-    target_link_libraries(alloy_engine ${COCOA} ${OpenGL} ${IOKIT})
+    target_link_libraries(alloy_engine PRIVATE ${COCOA} ${OpenGL} ${IOKIT})
 elseif(UNIX)
     find_package(OpenGL REQUIRED)
-    target_link_libraries(alloy_engine OpenGL::GL)
+    target_link_libraries(alloy_engine PRIVATE OpenGL::GL)
 endif()

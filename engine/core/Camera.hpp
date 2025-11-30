@@ -30,6 +30,7 @@ private:
     float lastY = 300;
     bool firstMouse = true;
 
+    bool wireframe = false;
 };
 
 

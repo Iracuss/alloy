@@ -7,8 +7,8 @@ Shader::Shader(const std::string& vertSrc, const std::string& fragSrc)
     std::string vPath = "../assets/shaders/" + vertSrc + ".vert";
     std::string fPath = "../assets/shaders/" + fragSrc + ".frag";
 
-    // std::cout << vPath << std::endl;
-    // std::cout << fPath << std::endl;
+    std::cout << "Loading vert shaders at: " << vPath << std::endl;
+    std::cout << "Loading frag shaders at: " << fPath << std::endl;
 
     vertShader = loadFile(vPath);
     fragShader = loadFile(fPath);

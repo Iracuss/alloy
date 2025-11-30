@@ -56,6 +56,10 @@ void Camera::processInput(GLFWwindow* window, float deltaTime)
 {
     float cameraSpeed = 2.5f * deltaTime;
 
+    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        cameraSpeed *= 2.0f;
+    }
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
@@ -76,5 +80,28 @@ void Camera::processInput(GLFWwindow* window, float deltaTime)
     {
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     }
-
+    if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        cameraPos += cameraUp * cameraSpeed;
+    }
+    if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    {
+        cameraPos -= cameraUp * cameraSpeed;
+    }
+    if(glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
+    {
+        if(!wireframe)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            wireframe = true;
+        }
+    }
+    if(glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
+    {
+        if(wireframe)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            wireframe = false;
+        }
+    }
 }
